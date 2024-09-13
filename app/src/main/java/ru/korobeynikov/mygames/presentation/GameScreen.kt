@@ -1,4 +1,4 @@
-package ru.korobeynikov.mygames
+package ru.korobeynikov.mygames.presentation
 
 import android.util.Log
 import androidx.compose.foundation.horizontalScroll
@@ -25,37 +25,13 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 
 @Composable
-fun GameScreen(dataGame: String, onNavigateToGenre: (String) -> Unit) {
-    var isSortGames by remember {
-        if (dataGame.isEmpty())
-            mutableStateOf(false)
-        else
-            mutableStateOf(dataGame.split("|")[0].toBoolean())
-    }
-    var nameGame by remember {
-        if (dataGame.isEmpty())
-            mutableStateOf("")
-        else
-            mutableStateOf(dataGame.split("|")[1])
-    }
-    var ratingGame by remember {
-        if (dataGame.isEmpty())
-            mutableStateOf("")
-        else
-            mutableStateOf(dataGame.split("|")[2])
-    }
-    var yearGame by remember {
-        if (dataGame.isEmpty())
-            mutableStateOf("")
-        else
-            mutableStateOf(dataGame.split("|")[3])
-    }
-    val genreGame by remember {
-        if (dataGame.isEmpty())
-            mutableStateOf("-")
-        else
-            mutableStateOf(dataGame.split("|")[4])
-    }
+fun GameScreen(gameViewModel: GameViewModel, onNavigateToGenre: (GameViewModel) -> Unit) {
+    val gameState by gameViewModel.gameScreenState
+    var nameGame by remember { mutableStateOf(gameState.nameGame) }
+    var ratingGame by remember { mutableStateOf(gameState.ratingGame) }
+    var yearGame by remember { mutableStateOf(gameState.yearGame) }
+    val genreGame by remember { mutableStateOf(gameState.genreGame) }
+    var isSortGames by remember { mutableStateOf(gameState.isSortGames) }
     val interactionSource = remember {
         object : MutableInteractionSource {
 
@@ -65,10 +41,7 @@ fun GameScreen(dataGame: String, onNavigateToGenre: (String) -> Unit) {
             )
 
             override suspend fun emit(interaction: Interaction) {
-                if (interaction is PressInteraction.Release) {
-                    val dataGameToGenreScreen = "$isSortGames|$nameGame|$ratingGame|$yearGame"
-                    onNavigateToGenre.invoke(dataGameToGenreScreen)
-                }
+                if (interaction is PressInteraction.Release) onNavigateToGenre.invoke(gameViewModel)
                 interactions.emit(interaction)
             }
 
@@ -87,17 +60,21 @@ fun GameScreen(dataGame: String, onNavigateToGenre: (String) -> Unit) {
             interactionSource = interactionSource,
             onNameChange = { text ->
                 nameGame = text
+                gameViewModel.actionChangeName(text)
             },
             onRatingChange = { text ->
                 ratingGame = text
+                gameViewModel.actionChangeRating(text)
             },
             onYearChange = { text ->
                 yearGame = text
+                gameViewModel.actionChangeYear(text)
             }
         )
 
         ActionButtons(isSortGames) {
             isSortGames = !isSortGames
+            gameViewModel.actionChangeSort(isSortGames)
         }
 
         Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
@@ -132,8 +109,7 @@ fun EnterFields(
             value = ratingGame,
             modifier = Modifier.weight(1f),
             onValueChange = { text ->
-                if (text.isDigitsOnly() && text.length < 3)
-                    onRatingChange.invoke(text)
+                if (text.isDigitsOnly() && text.length < 3) onRatingChange.invoke(text)
             }
         )
 
@@ -142,8 +118,7 @@ fun EnterFields(
             value = yearGame,
             modifier = Modifier.weight(1f),
             onValueChange = { text ->
-                if (text.isDigitsOnly())
-                    onYearChange.invoke(text)
+                if (text.isDigitsOnly()) onYearChange.invoke(text)
             }
         )
 
@@ -195,9 +170,7 @@ fun ActionButtons(isSortGames: Boolean, onIsSortGamesChange: () -> Unit) {
     }
 
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Checkbox(checked = isSortGames, onCheckedChange = {
-            onIsSortGamesChange.invoke()
-        })
+        Checkbox(checked = isSortGames, onCheckedChange = { onIsSortGamesChange.invoke() })
         Text("Сортировать")
     }
 }

@@ -1,4 +1,4 @@
-package ru.korobeynikov.mygames
+package ru.korobeynikov.mygames.presentation
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun GenreScreen(dataGame: String, onNavigateToGame: (String) -> Unit) {
+fun GenreScreen(gameViewModel: GameViewModel, onNavigateToGame: (GameViewModel) -> Unit) {
     val listGenres = listOf(
         "FPS",
         "TPS",
@@ -28,13 +28,17 @@ fun GenreScreen(dataGame: String, onNavigateToGame: (String) -> Unit) {
     )
     LazyColumn {
         items(listGenres.count()) { index ->
-            GenreItem(listGenres[index], dataGame, onNavigateToGame)
+            GenreItem(gameViewModel, listGenres[index], onNavigateToGame)
         }
     }
 }
 
 @Composable
-fun GenreItem(genre: String, dataGame: String, onNavigateToGame: (String) -> Unit) {
+fun GenreItem(
+    gameViewModel: GameViewModel,
+    genre: String,
+    onNavigateToGame: (GameViewModel) -> Unit,
+) {
     Text(
         text = genre,
         modifier = Modifier
@@ -42,7 +46,8 @@ fun GenreItem(genre: String, dataGame: String, onNavigateToGame: (String) -> Uni
             .border(width = 1.dp, color = Color.Black)
             .padding(16.dp)
             .clickable(onClick = {
-                onNavigateToGame.invoke("$dataGame|$genre")
+                gameViewModel.actionChangeGenre(genre)
+                onNavigateToGame.invoke(gameViewModel)
             }),
     )
 }
