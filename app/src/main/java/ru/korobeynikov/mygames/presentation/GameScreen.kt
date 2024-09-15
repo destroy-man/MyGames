@@ -14,6 +14,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,7 +30,8 @@ fun GameScreen(
     onShowMessage: (String) -> Unit,
     onNavigateToGenre: (GameViewModel) -> Unit,
 ) {
-    val gameState by gameViewModel.gameScreenState
+    val gameState by gameViewModel.gameScreenStateFlow.collectAsState()
+    gameViewModel.setGameScreenState(gameState)
     val nameGame by remember(gameState) { mutableStateOf(gameState.nameGame) }
     val ratingGame by remember(gameState) { mutableStateOf(gameState.ratingGame) }
     val yearGame by remember(gameState) { mutableStateOf(gameState.yearGame) }

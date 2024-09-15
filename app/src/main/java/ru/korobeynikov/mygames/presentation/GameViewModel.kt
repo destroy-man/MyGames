@@ -1,88 +1,86 @@
 package ru.korobeynikov.mygames.presentation
 
-import androidx.compose.runtime.State
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import ru.korobeynikov.mygames.data.Game
 import ru.korobeynikov.mygames.data.GameRepository
 
 class GameViewModel(private val gameRepository: GameRepository) : ViewModel() {
 
-    private val _gameScreenState =
-        mutableStateOf(GameScreenState("", "", "", "-", false, emptyList()))
-    val gameScreenState: State<GameScreenState> = _gameScreenState
+    private val _gameScreenStateFlow =
+        MutableStateFlow(GameScreenState("", "", "", "-", false, emptyList()))
+    val gameScreenStateFlow: StateFlow<GameScreenState> = _gameScreenStateFlow
+    private lateinit var gameScreenState: GameScreenState
+
+    fun setGameScreenState(gameScreenState: GameScreenState) {
+        this.gameScreenState = gameScreenState
+    }
 
     fun actionChangeName(name: String) {
-        val gameScreenStateValue by gameScreenState
-        _gameScreenState.value = GameScreenState(
+        _gameScreenStateFlow.value = GameScreenState(
             name,
-            gameScreenStateValue.ratingGame,
-            gameScreenStateValue.yearGame,
-            gameScreenStateValue.genreGame,
-            gameScreenStateValue.isSortGames,
-            gameScreenStateValue.listGames
+            gameScreenState.ratingGame,
+            gameScreenState.yearGame,
+            gameScreenState.genreGame,
+            gameScreenState.isSortGames,
+            gameScreenState.listGames
         )
     }
 
     fun actionChangeRating(rating: String) {
-        val gameScreenStateValue by gameScreenState
-        _gameScreenState.value = GameScreenState(
-            gameScreenStateValue.nameGame,
+        _gameScreenStateFlow.value = GameScreenState(
+            gameScreenState.nameGame,
             rating,
-            gameScreenStateValue.yearGame,
-            gameScreenStateValue.genreGame,
-            gameScreenStateValue.isSortGames,
-            gameScreenStateValue.listGames
+            gameScreenState.yearGame,
+            gameScreenState.genreGame,
+            gameScreenState.isSortGames,
+            gameScreenState.listGames
         )
     }
 
     fun actionChangeYear(year: String) {
-        val gameScreenStateValue by gameScreenState
-        _gameScreenState.value = GameScreenState(
-            gameScreenStateValue.nameGame,
-            gameScreenStateValue.ratingGame,
+        _gameScreenStateFlow.value = GameScreenState(
+            gameScreenState.nameGame,
+            gameScreenState.ratingGame,
             year,
-            gameScreenStateValue.genreGame,
-            gameScreenStateValue.isSortGames,
-            gameScreenStateValue.listGames
+            gameScreenState.genreGame,
+            gameScreenState.isSortGames,
+            gameScreenState.listGames
         )
     }
 
     fun actionChangeGenre(genre: String) {
-        val gameScreenStateValue by gameScreenState
-        _gameScreenState.value = GameScreenState(
-            gameScreenStateValue.nameGame,
-            gameScreenStateValue.ratingGame,
-            gameScreenStateValue.yearGame,
+        _gameScreenStateFlow.value = GameScreenState(
+            gameScreenState.nameGame,
+            gameScreenState.ratingGame,
+            gameScreenState.yearGame,
             genre,
-            gameScreenStateValue.isSortGames,
-            gameScreenStateValue.listGames
+            gameScreenState.isSortGames,
+            gameScreenState.listGames
         )
     }
 
     fun actionChangeSort(isSort: Boolean) {
-        val gameScreenStateValue by gameScreenState
-        _gameScreenState.value = GameScreenState(
-            gameScreenStateValue.nameGame,
-            gameScreenStateValue.ratingGame,
-            gameScreenStateValue.yearGame,
-            gameScreenStateValue.genreGame,
+        _gameScreenStateFlow.value = GameScreenState(
+            gameScreenState.nameGame,
+            gameScreenState.ratingGame,
+            gameScreenState.yearGame,
+            gameScreenState.genreGame,
             isSort,
-            gameScreenStateValue.listGames
+            gameScreenState.listGames
         )
     }
 
     private fun actionChangeListGames(listGames: List<Game>) {
-        val gameScreenStateValue by gameScreenState
-        _gameScreenState.value = GameScreenState(
-            gameScreenStateValue.nameGame,
-            gameScreenStateValue.ratingGame,
-            gameScreenStateValue.yearGame,
-            gameScreenStateValue.genreGame,
-            gameScreenStateValue.isSortGames,
+        _gameScreenStateFlow.value = GameScreenState(
+            gameScreenState.nameGame,
+            gameScreenState.ratingGame,
+            gameScreenState.yearGame,
+            gameScreenState.genreGame,
+            gameScreenState.isSortGames,
             listGames
         )
     }
