@@ -17,7 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.core.text.isDigitsOnly
@@ -25,13 +24,18 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 
 @Composable
-fun GameScreen(gameViewModel: GameViewModel, onNavigateToGenre: (GameViewModel) -> Unit) {
+fun GameScreen(
+    gameViewModel: GameViewModel,
+    onShowMessage: (String) -> Unit,
+    onNavigateToGenre: (GameViewModel) -> Unit,
+) {
     val gameState by gameViewModel.gameScreenState
-    var nameGame by remember { mutableStateOf(gameState.nameGame) }
-    var ratingGame by remember { mutableStateOf(gameState.ratingGame) }
-    var yearGame by remember { mutableStateOf(gameState.yearGame) }
-    val genreGame by remember { mutableStateOf(gameState.genreGame) }
-    var isSortGames by remember { mutableStateOf(gameState.isSortGames) }
+    val nameGame by remember(gameState) { mutableStateOf(gameState.nameGame) }
+    val ratingGame by remember(gameState) { mutableStateOf(gameState.ratingGame) }
+    val yearGame by remember(gameState) { mutableStateOf(gameState.yearGame) }
+    val genreGame by remember(gameState) { mutableStateOf(gameState.genreGame) }
+    val isSortGames by remember(gameState) { mutableStateOf(gameState.isSortGames) }
+    val listGames by remember(gameState) { mutableStateOf(gameState.listGames) }
     val interactionSource = remember {
         object : MutableInteractionSource {
 
@@ -59,26 +63,36 @@ fun GameScreen(gameViewModel: GameViewModel, onNavigateToGenre: (GameViewModel) 
             genreGame = genreGame,
             interactionSource = interactionSource,
             onNameChange = { text ->
-                nameGame = text
                 gameViewModel.actionChangeName(text)
             },
             onRatingChange = { text ->
-                ratingGame = text
                 gameViewModel.actionChangeRating(text)
             },
             onYearChange = { text ->
-                yearGame = text
                 gameViewModel.actionChangeYear(text)
             }
         )
 
-        ActionButtons(isSortGames) {
-            isSortGames = !isSortGames
-            gameViewModel.actionChangeSort(isSortGames)
+        ActionButtons(
+            nameGame,
+            ratingGame,
+            yearGame,
+            genreGame,
+            isSortGames,
+            gameViewModel,
+            onShowMessage
+        ) {
+            gameViewModel.actionChangeSort(!isSortGames)
         }
 
         Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
-            Text(text = "Список игр")
+            val listGamesString = StringBuilder()
+            var gameNumber = 1
+            for (game in listGames) {
+                listGamesString.append("$gameNumber. ${game.name} (${game.year}) = ${game.rating}\n")
+                gameNumber++
+            }
+            Text(text = listGamesString.toString())
         }
     }
 }
@@ -134,22 +148,31 @@ fun EnterFields(
 }
 
 @Composable
-fun ActionButtons(isSortGames: Boolean, onIsSortGamesChange: () -> Unit) {
+fun ActionButtons(
+    nameGame: String,
+    ratingGame: String,
+    yearGame: String,
+    genreGame: String,
+    isSortGames: Boolean,
+    gameViewModel: GameViewModel,
+    onShowMessage: (String) -> Unit,
+    onIsSortGamesChange: () -> Unit,
+) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Button(modifier = Modifier.weight(1f), onClick = {
-            Log.d("myLogs", "Добавление игры")
+            gameViewModel.addGame(nameGame, ratingGame, yearGame, genreGame, onShowMessage)
         }) {
             Text("Добавить")
         }
 
         Button(modifier = Modifier.weight(1f), onClick = {
-            Log.d("myLogs", "Изменение игры")
+            gameViewModel.changeGame(nameGame, ratingGame, yearGame, genreGame, onShowMessage)
         }) {
             Text("Изменить")
         }
 
         Button(modifier = Modifier.weight(1f), onClick = {
-            Log.d("myLogs", "Удаление игры")
+            gameViewModel.deleteGame(nameGame, yearGame, onShowMessage)
         }) {
             Text("Удалить")
         }

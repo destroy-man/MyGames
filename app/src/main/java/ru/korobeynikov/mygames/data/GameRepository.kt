@@ -9,9 +9,9 @@ import java.io.FileReader
 import java.io.FileWriter
 import java.io.IOException
 
-class GameRepository(private val gamesDao: GameDao) {
+class GameRepository(private val db: GameDatabase) {
 
-    suspend fun getGamesFromDB(isSort: Boolean) = gamesDao.getAll()
+    suspend fun getGamesFromDB() = db.gameDao().getAll()
 
     suspend fun addGameInDB(
         nameGame: String,
@@ -19,9 +19,9 @@ class GameRepository(private val gamesDao: GameDao) {
         yearGame: Int,
         genreGame: String,
     ): String {
-        val game = gamesDao.getGame(nameGame, yearGame)
+        val game = db.gameDao().getGame(nameGame, yearGame)
         return if (game == null) {
-            gamesDao.insert(
+            db.gameDao().insert(
                 Game(
                     name = nameGame,
                     rating = ratingGame,
@@ -39,32 +39,28 @@ class GameRepository(private val gamesDao: GameDao) {
         yearGame: String,
         genreGame: String,
     ): String {
-        val game = gamesDao.getGame(nameGame, yearGame.toInt())
+        val game = db.gameDao().getGame(nameGame, yearGame.toInt())
         return if (game != null) {
             var isGameChange = false
             if (ratingGame.isNotEmpty()) {
                 game.rating = ratingGame.toInt()
                 isGameChange = true
             }
-            if (yearGame.isNotEmpty()) {
-                game.year = yearGame.toInt()
-                if (!isGameChange) isGameChange = true
-            }
-            if (genreGame.isNotEmpty()) {
+            if (genreGame != "-") {
                 game.genre = genreGame
                 if (!isGameChange) isGameChange = true
             }
             if (isGameChange) {
-                gamesDao.update(game)
+                db.gameDao().update(game)
                 "Информация об игре успешно обновлена"
-            } else "Для обновления информации об игре необходимо указать оценку, год или жанр игры"
+            } else "Для обновления информации об игре необходимо указать оценку или жанр игры"
         } else "Данной игры нет в базе данных"
     }
 
     suspend fun deleteGameInDB(nameGame: String, yearGame: Int): String {
-        val game = gamesDao.getGame(nameGame, yearGame)
+        val game = db.gameDao().getGame(nameGame, yearGame)
         return if (game != null) {
-            gamesDao.delete(game)
+            db.gameDao().delete(game)
             "Игра успешно удалена"
         } else "Данной игры нет в базе данных"
     }
