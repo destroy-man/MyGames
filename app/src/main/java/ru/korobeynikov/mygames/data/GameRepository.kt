@@ -65,22 +65,23 @@ class GameRepository(private val db: GameDatabase) {
         } else "Данной игры нет в базе данных"
     }
 
-    suspend fun saveGamesFromDB(path: String, listGames: List<Game>): String {
+    suspend fun saveGamesFromDB(path: String): String {
         val directory = File(path, "MyGames")
         if (!directory.exists()) directory.mkdirs()
         val gamesFile = File("${directory.path}/games.txt")
         return try {
-            if (listGames.isNotEmpty())
-                withContext(Dispatchers.IO) {
+            withContext(Dispatchers.IO) {
+                val listGames = getGamesFromDB()
+                if (listGames.isNotEmpty()) {
                     val writer = BufferedWriter(FileWriter(gamesFile))
                     for (game in listGames) {
                         writer.write("${game.name};${game.rating};${game.year};${game.genre}")
                         writer.newLine()
                     }
                     writer.close()
-                    return@withContext "Сохранение в файл успешно завершено"
-                }
-            "Сохранение данных"
+                    "Сохранение в файл успешно завершено"
+                } else "Нет данных для сохранения"
+            }
         } catch (e: IOException) {
             "Произошла ошибка при сохранении в файл"
         }
@@ -103,11 +104,10 @@ class GameRepository(private val db: GameDatabase) {
                     line = reader.readLine()
                 }
                 reader.close()
-                return@withContext "Данные из файла успешно загружены!"
+                "Данные из файла успешно загружены"
             }
-            "Загрузка данных"
         } catch (e: IOException) {
-            "Произошла ошибка при загрузке данных из файла!"
+            "Произошла ошибка при загрузке данных из файла"
         }
     }
 }

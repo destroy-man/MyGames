@@ -132,4 +132,19 @@ class GameViewModel(private val gameRepository: GameRepository) : ViewModel() {
             getGames()
         }
     }
+
+    fun saveGames(path: String, onShowMessage: (String) -> Unit) {
+        viewModelScope.launch {
+            val message = gameRepository.saveGamesFromDB(path)
+            onShowMessage.invoke(message)
+        }
+    }
+
+    fun loadGames(path: String, onShowMessage: (String) -> Unit) {
+        viewModelScope.launch {
+            val message = gameRepository.loadGamesInDB(path)
+            onShowMessage.invoke(message)
+            getGames()
+        }
+    }
 }

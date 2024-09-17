@@ -1,6 +1,5 @@
 package ru.korobeynikov.mygames.presentation
 
-import android.util.Log
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -16,7 +15,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,15 +27,17 @@ fun GameScreen(
     gameViewModel: GameViewModel,
     onShowMessage: (String) -> Unit,
     onNavigateToGenre: (GameViewModel) -> Unit,
+    onSaveGames: () -> Unit,
+    onLoadGames: () -> Unit,
 ) {
     val gameState by gameViewModel.gameScreenStateFlow.collectAsState()
     gameViewModel.setGameScreenState(gameState)
-    val nameGame by remember(gameState) { mutableStateOf(gameState.nameGame) }
-    val ratingGame by remember(gameState) { mutableStateOf(gameState.ratingGame) }
-    val yearGame by remember(gameState) { mutableStateOf(gameState.yearGame) }
-    val genreGame by remember(gameState) { mutableStateOf(gameState.genreGame) }
-    val isSortGames by remember(gameState) { mutableStateOf(gameState.isSortGames) }
-    val listGames by remember(gameState) { mutableStateOf(gameState.listGames) }
+    val nameGame = gameState.nameGame
+    val ratingGame = gameState.ratingGame
+    val yearGame = gameState.yearGame
+    val genreGame = gameState.genreGame
+    val isSortGames = gameState.isSortGames
+    val listGames = gameState.listGames
     val interactionSource = remember {
         object : MutableInteractionSource {
 
@@ -82,7 +82,9 @@ fun GameScreen(
             genreGame,
             isSortGames,
             gameViewModel,
-            onShowMessage
+            onShowMessage,
+            onSaveGames,
+            onLoadGames
         ) {
             gameViewModel.actionChangeSort(!isSortGames)
         }
@@ -158,6 +160,8 @@ fun ActionButtons(
     isSortGames: Boolean,
     gameViewModel: GameViewModel,
     onShowMessage: (String) -> Unit,
+    onSaveGames: () -> Unit,
+    onLoadGames: () -> Unit,
     onIsSortGamesChange: () -> Unit,
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -181,15 +185,11 @@ fun ActionButtons(
     }
 
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Button(modifier = Modifier.weight(1f), onClick = {
-            Log.d("myLogs", "Сохранение списка игр")
-        }) {
+        Button(modifier = Modifier.weight(1f), onClick = onSaveGames) {
             Text("Сохранить")
         }
 
-        Button(modifier = Modifier.weight(1f), onClick = {
-            Log.d("myLogs", "Загрузка списка игр")
-        }) {
+        Button(modifier = Modifier.weight(1f), onClick = onLoadGames) {
             Text("Загрузить")
         }
     }
