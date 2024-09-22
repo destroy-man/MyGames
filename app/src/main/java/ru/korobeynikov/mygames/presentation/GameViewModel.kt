@@ -147,4 +147,28 @@ class GameViewModel(private val gameRepository: GameRepository) : ViewModel() {
             getGames()
         }
     }
+
+    fun filterListGames(
+        name: String,
+        rating: String,
+        year: String,
+        genre: String,
+        isSort: Boolean,
+    ): List<Game> {
+        var listGames = gameScreenState.listGames
+        if (name.isNotEmpty())
+            listGames = listGames.filter { it.name.contains(name, true) }
+        if (rating.isNotEmpty())
+            listGames = listGames.filter { it.rating == rating.toInt() }
+        if (year.isNotEmpty())
+            listGames = listGames.filter { it.year.toString().contains(year) }
+        if (genre != "-")
+            listGames = listGames.filter { it.genre == genre }
+        if (isSort)
+            listGames = listGames.sortedWith(
+                compareByDescending(Game::rating).thenByDescending(Game::year).thenBy(Game::genre)
+                    .thenByDescending(Game::id)
+            )
+        return listGames
+    }
 }

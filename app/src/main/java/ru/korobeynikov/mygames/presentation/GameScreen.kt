@@ -37,7 +37,8 @@ fun GameScreen(
     val yearGame = gameState.yearGame
     val genreGame = gameState.genreGame
     val isSortGames = gameState.isSortGames
-    val listGames = gameState.listGames
+    val listGames =
+        gameViewModel.filterListGames(nameGame, ratingGame, yearGame, genreGame, isSortGames)
     val interactionSource = remember {
         object : MutableInteractionSource {
 
@@ -166,19 +167,29 @@ fun ActionButtons(
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Button(modifier = Modifier.weight(1f), onClick = {
-            gameViewModel.addGame(nameGame, ratingGame, yearGame, genreGame, onShowMessage)
+            if (nameGame.isEmpty() || ratingGame.isEmpty() || yearGame.isEmpty() || genreGame == "-")
+                onShowMessage.invoke("Для добавления игры необходимо указать название, оценку, год и жанр игры")
+            else if (ratingGame.toInt() < 1 || ratingGame.toInt() > 10)
+                onShowMessage.invoke("Оценка должна принимать значение в интервале от 1 до 10")
+            else gameViewModel.addGame(nameGame, ratingGame, yearGame, genreGame, onShowMessage)
         }) {
             Text("Добавить")
         }
 
         Button(modifier = Modifier.weight(1f), onClick = {
-            gameViewModel.changeGame(nameGame, ratingGame, yearGame, genreGame, onShowMessage)
+            if (nameGame.isEmpty() || yearGame.isEmpty())
+                onShowMessage.invoke("Для обновления данных по игре необходимо указать название и год игры")
+            else if (ratingGame.isNotEmpty() && (ratingGame.toInt() < 1 || ratingGame.toInt() > 10))
+                onShowMessage.invoke("Оценка должна принимать значение в интервале от 1 до 10")
+            else gameViewModel.changeGame(nameGame, ratingGame, yearGame, genreGame, onShowMessage)
         }) {
             Text("Изменить")
         }
 
         Button(modifier = Modifier.weight(1f), onClick = {
-            gameViewModel.deleteGame(nameGame, yearGame, onShowMessage)
+            if (nameGame.isEmpty() || yearGame.isEmpty())
+                onShowMessage.invoke("Для удаления игры необходимо указать название и год игры")
+            else gameViewModel.deleteGame(nameGame, yearGame, onShowMessage)
         }) {
             Text("Удалить")
         }
