@@ -13,9 +13,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.room.Room
-import ru.korobeynikov.mygames.data.GameDatabase
-import ru.korobeynikov.mygames.data.GameRepository
+import org.koin.android.ext.android.inject
+import org.koin.android.ext.koin.androidContext
+import org.koin.core.context.startKoin
+import ru.korobeynikov.mygames.di.gameViewModelModule
 
 class MainActivity : ComponentActivity() {
 
@@ -26,7 +27,7 @@ class MainActivity : ComponentActivity() {
 
     private val path = Environment.getExternalStorageDirectory().absolutePath
     private var numOperation = 0
-    private lateinit var gameViewModel: GameViewModel
+    private val gameViewModel: GameViewModel by inject()
 
     private fun processPermission() {
         try {
@@ -52,8 +53,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val db = Room.databaseBuilder(this, GameDatabase::class.java, "gamesDatabase").build()
-        gameViewModel = GameViewModel(GameRepository(db))
+        startKoin {
+            androidContext(this@MainActivity)
+            modules(gameViewModelModule)
+        }
         gameViewModel.getGames()
         setContent {
             val navHostController = rememberNavController()
