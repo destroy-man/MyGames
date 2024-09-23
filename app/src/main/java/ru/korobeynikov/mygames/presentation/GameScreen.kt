@@ -58,7 +58,7 @@ fun GameScreen(
         }
     }
 
-    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+    Column {
         EnterFields(
             nameGame = nameGame,
             ratingGame = ratingGame,
@@ -90,7 +90,11 @@ fun GameScreen(
             gameViewModel.actionChangeSort(!isSortGames)
         }
 
-        Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
+        Row(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .horizontalScroll(rememberScrollState())
+        ) {
             val listGamesString = StringBuilder()
             var gameNumber = 1
             for (game in listGames) {
