@@ -16,6 +16,7 @@ import androidx.navigation.compose.rememberNavController
 import org.koin.android.ext.android.inject
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
+import org.koin.core.context.stopKoin
 import ru.korobeynikov.mygames.di.gameViewModelModule
 
 class MainActivity : ComponentActivity() {
@@ -53,6 +54,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        stopKoin()
         startKoin {
             androidContext(this@MainActivity)
             modules(gameViewModelModule)

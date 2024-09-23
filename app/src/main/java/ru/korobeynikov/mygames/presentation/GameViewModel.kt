@@ -10,10 +10,10 @@ import ru.korobeynikov.mygames.data.GameRepository
 
 class GameViewModel(private val gameRepository: GameRepository) : ViewModel() {
 
-    private val _gameScreenStateFlow =
-        MutableStateFlow(GameScreenState("", "", "", "-", false, emptyList()))
+    private val initialState = GameScreenState("", "", "", "-", false, emptyList())
+    private val _gameScreenStateFlow = MutableStateFlow(initialState)
     val gameScreenStateFlow: StateFlow<GameScreenState> = _gameScreenStateFlow
-    private lateinit var gameScreenState: GameScreenState
+    private var gameScreenState = initialState
 
     fun setGameScreenState(gameScreenState: GameScreenState) {
         this.gameScreenState = gameScreenState
