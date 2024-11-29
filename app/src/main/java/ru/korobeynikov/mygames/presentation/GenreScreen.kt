@@ -13,22 +13,10 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun GenreScreen(gameViewModel: GameViewModel, onNavigateToGame: (GameViewModel) -> Unit) {
-    val listGenres = listOf(
-        "FPS",
-        "TPS",
-        "Slasher",
-        "Stealth",
-        "RTS",
-        "TBS",
-        "ARPG",
-        "CRPG",
-        "Arcade",
-        "Adventure",
-        "Other"
-    )
+    val genresList = gameViewModel.getGenres()
     LazyColumn {
-        items(listGenres.count()) { index ->
-            GenreItem(gameViewModel, listGenres[index], onNavigateToGame)
+        items(genresList.count()) { index ->
+            GenreItem(gameViewModel, genresList[index], onNavigateToGame)
         }
     }
 }

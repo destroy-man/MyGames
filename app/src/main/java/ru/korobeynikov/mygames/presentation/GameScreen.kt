@@ -149,7 +149,7 @@ fun EnterFields(
         OutlinedTextField(
             value = genreGame,
             readOnly = true,
-            modifier = Modifier.weight(1.5f),
+            modifier = Modifier.weight(1f),
             interactionSource = interactionSource,
             onValueChange = {}
         )

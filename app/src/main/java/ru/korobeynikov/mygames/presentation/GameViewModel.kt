@@ -14,6 +14,7 @@ class GameViewModel(private val gameRepository: GameRepository) : ViewModel() {
     private val _gameScreenStateFlow = MutableStateFlow(initialState)
     val gameScreenStateFlow: StateFlow<GameScreenState> = _gameScreenStateFlow
     private var gameScreenState = initialState
+    private var genresList = emptyList<String>()
 
     fun setGameScreenState(gameScreenState: GameScreenState) {
         this.gameScreenState = gameScreenState
@@ -171,4 +172,13 @@ class GameViewModel(private val gameRepository: GameRepository) : ViewModel() {
             )
         return listGames
     }
+
+    fun loadGenres(path: String) {
+        viewModelScope.launch {
+            if (genresList.isEmpty())
+                genresList = gameRepository.loadGenresFromFile(path)
+        }
+    }
+
+    fun getGenres() = genresList
 }

@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace = "ru.korobeynikov.mygames"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "ru.korobeynikov.mygames"
         minSdk = 30
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 

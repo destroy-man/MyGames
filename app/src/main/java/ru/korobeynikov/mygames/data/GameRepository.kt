@@ -1,5 +1,6 @@
 package ru.korobeynikov.mygames.data
 
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
@@ -79,11 +80,11 @@ class GameRepository(private val db: GameDatabase) {
                         writer.newLine()
                     }
                     writer.close()
-                    "Сохранение в файл успешно завершено"
-                } else "Нет данных для сохранения"
+                    "Сохранение игр успешно завершено"
+                } else "Нет игр для сохранения"
             }
         } catch (e: IOException) {
-            "Произошла ошибка при сохранении в файл"
+            "Произошла ошибка при сохранении игр"
         }
     }
 
@@ -104,10 +105,32 @@ class GameRepository(private val db: GameDatabase) {
                     line = reader.readLine()
                 }
                 reader.close()
-                "Данные из файла успешно загружены"
+                "Игры успешно загружены"
             }
         } catch (e: IOException) {
-            "Произошла ошибка при загрузке данных из файла"
+            "Произошла ошибка при загрузке игр"
+        }
+    }
+
+    suspend fun loadGenresFromFile(path: String): List<String> {
+        val genresList = arrayListOf<String>()
+        val directory = File(path, "MyGames")
+        if (!directory.exists()) directory.mkdirs()
+        val genresFile = File("${directory.path}/genres.txt")
+        return try {
+            withContext(Dispatchers.IO) {
+                val reader = BufferedReader(FileReader(genresFile))
+                var line = reader.readLine()
+                while (line != null) {
+                    genresList.add(line)
+                    line = reader.readLine()
+                }
+                reader.close()
+                genresList
+            }
+        } catch (e: IOException) {
+            Log.d("myLogs", "Произошла ошибка при загрузке жанров")
+            genresList
         }
     }
 }

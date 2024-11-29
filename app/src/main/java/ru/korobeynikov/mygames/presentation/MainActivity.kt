@@ -22,8 +22,10 @@ import ru.korobeynikov.mygames.di.gameViewModelModule
 class MainActivity : ComponentActivity() {
 
     companion object {
-        const val REQUEST_CODE_PERMISSION_WRITE_STORAGE = 1
-        const val REQUEST_CODE_PERMISSION_READ_STORAGE = 2
+        const val REQUEST_CODE_SAVE_GAMES = 1
+        const val REQUEST_CODE_LOAD_GAMES = 2
+        const val REQUEST_CODE_LOAD_GENRES = 3
+
     }
 
     private val path = Environment.getExternalStorageDirectory().absolutePath
@@ -45,10 +47,10 @@ class MainActivity : ComponentActivity() {
 
     private val launcherManageStorage =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            if (numOperation == REQUEST_CODE_PERMISSION_WRITE_STORAGE) {
-                gameViewModel.saveGames(path, showMessage)
-            } else if (numOperation == REQUEST_CODE_PERMISSION_READ_STORAGE) {
-                gameViewModel.loadGames(path, showMessage)
+            when (numOperation) {
+                REQUEST_CODE_SAVE_GAMES -> gameViewModel.saveGames(path, showMessage)
+                REQUEST_CODE_LOAD_GAMES -> gameViewModel.loadGames(path, showMessage)
+                REQUEST_CODE_LOAD_GENRES -> gameViewModel.loadGenres(path)
             }
         }
 
@@ -60,6 +62,11 @@ class MainActivity : ComponentActivity() {
             modules(gameViewModelModule)
         }
         gameViewModel.getGames()
+        numOperation = REQUEST_CODE_LOAD_GENRES
+        if (Environment.isExternalStorageManager())
+            gameViewModel.loadGenres(path)
+        else
+            processPermission()
         setContent {
             val navHostController = rememberNavController()
             Column {
@@ -72,14 +79,14 @@ class MainActivity : ComponentActivity() {
                                 navHostController.navigate("genre")
                             },
                             onSaveGames = {
-                                numOperation = REQUEST_CODE_PERMISSION_WRITE_STORAGE
+                                numOperation = REQUEST_CODE_SAVE_GAMES
                                 if (Environment.isExternalStorageManager())
                                     gameViewModel.saveGames(path, showMessage)
                                 else
                                     processPermission()
                             },
                             onLoadGames = {
-                                numOperation = REQUEST_CODE_PERMISSION_READ_STORAGE
+                                numOperation = REQUEST_CODE_LOAD_GAMES
                                 if (Environment.isExternalStorageManager())
                                     gameViewModel.loadGames(path, showMessage)
                                 else
