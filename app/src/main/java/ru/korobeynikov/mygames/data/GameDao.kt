@@ -12,9 +12,6 @@ interface GameDao {
     @Query("SELECT * FROM game")
     suspend fun getAll(): List<Game>
 
-//    @Query("SELECT * FROM game ORDER BY rating, year, genre, name")
-//    suspend fun getSortedAll():List<Game>
-
     @Query("SELECT * FROM game WHERE name = :nameGame AND year = :yearGame")
     suspend fun getGame(nameGame: String, yearGame: Int): Game?
 
