@@ -10,6 +10,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -69,7 +71,7 @@ class MainActivity : ComponentActivity() {
             processPermission()
         setContent {
             val navHostController = rememberNavController()
-            Column {
+            Column(modifier = Modifier.safeContentPadding()) {
                 NavHost(navController = navHostController, startDestination = "game") {
                     composable("game") {
                         GameScreen(
