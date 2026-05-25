@@ -1,20 +1,33 @@
-package ru.korobeynikov.mygames.presentation
+package ru.korobeynikov.mygames.presentation.game
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import ru.korobeynikov.mygames.data.Game
 import ru.korobeynikov.mygames.data.GameRepository
+import java.io.InputStream
+import java.io.OutputStream
 
 class GameViewModel(private val gameRepository: GameRepository) : ViewModel() {
 
-    private val initialState = GameScreenState("", "", "", "-", false, emptyList())
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    private val initialState = GameScreenState(
+        nameGame = "",
+        ratingGame = "",
+        yearGame = "",
+        genreGame = "-",
+        isSortGames = false,
+        listGames = emptyList()
+    )
     private val _gameScreenStateFlow = MutableStateFlow(initialState)
     val gameScreenStateFlow: StateFlow<GameScreenState> = _gameScreenStateFlow
     private var gameScreenState = initialState
-    private var genresList = emptyList<String>()
 
     fun setGameScreenState(gameScreenState: GameScreenState) {
         this.gameScreenState = gameScreenState
@@ -87,7 +100,7 @@ class GameViewModel(private val gameRepository: GameRepository) : ViewModel() {
     }
 
     fun getGames() {
-        viewModelScope.launch {
+        scope.launch {
             val listGames = gameRepository.getGamesFromDB()
             actionChangeListGames(listGames)
         }
@@ -100,14 +113,14 @@ class GameViewModel(private val gameRepository: GameRepository) : ViewModel() {
         genreGame: String,
         onShowMessage: (String) -> Unit,
     ) {
-        viewModelScope.launch {
+        scope.launch {
             val message = gameRepository.addGameInDB(
                 nameGame,
                 ratingGame.toInt(),
                 yearGame.toInt(),
                 genreGame
             )
-            onShowMessage.invoke(message)
+            onShowMessage(message)
             getGames()
         }
     }
@@ -119,33 +132,64 @@ class GameViewModel(private val gameRepository: GameRepository) : ViewModel() {
         genreGame: String,
         onShowMessage: (String) -> Unit,
     ) {
-        viewModelScope.launch {
+        scope.launch {
             val message = gameRepository.changeGameInDB(nameGame, ratingGame, yearGame, genreGame)
-            onShowMessage.invoke(message)
+            onShowMessage(message)
             getGames()
         }
     }
 
     fun deleteGame(nameGame: String, yearGame: String, onShowMessage: (String) -> Unit) {
-        viewModelScope.launch {
+        scope.launch {
             val message = gameRepository.deleteGameInDB(nameGame, yearGame.toInt())
-            onShowMessage.invoke(message)
+            onShowMessage(message)
             getGames()
         }
     }
 
-    fun saveGames(path: String, onShowMessage: (String) -> Unit) {
-        viewModelScope.launch {
-            val message = gameRepository.saveGamesFromDB(path)
-            onShowMessage.invoke(message)
+    fun saveGames(outputStream: OutputStream?, onShowMessage: (String) -> Unit) {
+        scope.launch {
+            val listGames = gameScreenState.listGames
+            if (listGames.isEmpty()) {
+                onShowMessage("Нет игр для сохранения")
+            } else if (outputStream == null) {
+                onShowMessage("Не удалось сохранить игры")
+            } else {
+                val sbGames = StringBuilder()
+                for (game in listGames) {
+                    sbGames.appendLine("${game.name};${game.rating};${game.year};${game.genre}")
+                }
+                outputStream.write(sbGames.toString().toByteArray())
+                onShowMessage("Сохранение игр успешно завершено")
+            }
         }
     }
 
-    fun loadGames(path: String, onShowMessage: (String) -> Unit) {
-        viewModelScope.launch {
-            val message = gameRepository.loadGamesInDB(path)
-            onShowMessage.invoke(message)
-            getGames()
+    fun loadGames(inputStream: InputStream?, onShowMessage: (String) -> Unit) {
+        scope.launch {
+            if (inputStream == null) {
+                onShowMessage("Не удалось загрузить игры")
+            } else {
+                val loadedGames = inputStream.bufferedReader().use { reader ->
+                    reader.readText()
+                }
+                if (loadedGames.isEmpty()) {
+                    onShowMessage("Нет игр для загрузки")
+                } else {
+                    val games = loadedGames.split("\n")
+                    games.forEach { game ->
+                        if (game.isEmpty()) return@forEach
+                        Log.d("myLogs", game)
+                        val nameGame = game.split(";")[0]
+                        val ratingGame = game.split(";")[1].toInt()
+                        val yearGame = game.split(";")[2].toInt()
+                        val genreGame = game.split(";")[3]
+                        gameRepository.addGameInDB(nameGame, ratingGame, yearGame, genreGame)
+                    }
+                    onShowMessage("Игры успешно загружены")
+                    getGames()
+                }
+            }
         }
     }
 
@@ -172,13 +216,4 @@ class GameViewModel(private val gameRepository: GameRepository) : ViewModel() {
             )
         return listGames
     }
-
-    fun loadGenres(path: String) {
-        viewModelScope.launch {
-            if (genresList.isEmpty())
-                genresList = gameRepository.loadGenresFromFile(path)
-        }
-    }
-
-    fun getGenres() = genresList
 }

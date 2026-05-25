@@ -1,5 +1,8 @@
-package ru.korobeynikov.mygames.presentation
+package ru.korobeynikov.mygames.presentation.game
 
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -16,19 +19,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.core.text.isDigitsOnly
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.launch
+import ru.korobeynikov.mygames.R
 
 @Composable
 fun GameScreen(
     gameViewModel: GameViewModel,
-    onShowMessage: (String) -> Unit,
-    onNavigateToGenre: (GameViewModel) -> Unit,
-    onSaveGames: () -> Unit,
-    onLoadGames: () -> Unit,
+    onNavigateToGenre: (GameViewModel) -> Unit
 ) {
     val gameState by gameViewModel.gameScreenStateFlow.collectAsState()
     gameViewModel.setGameScreenState(gameState)
@@ -82,10 +88,7 @@ fun GameScreen(
             yearGame,
             genreGame,
             isSortGames,
-            gameViewModel,
-            onShowMessage,
-            onSaveGames,
-            onLoadGames
+            gameViewModel
         ) {
             gameViewModel.actionChangeSort(!isSortGames)
         }
@@ -115,10 +118,10 @@ fun EnterFields(
     interactionSource: MutableInteractionSource,
     onNameChange: (String) -> Unit,
     onRatingChange: (String) -> Unit,
-    onYearChange: (String) -> Unit,
+    onYearChange: (String) -> Unit
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(text = "Название: ")
+        Text(text = stringResource(R.string.name_game_text))
         OutlinedTextField(
             value = nameGame,
             modifier = Modifier.weight(1f),
@@ -127,7 +130,7 @@ fun EnterFields(
     }
 
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(text = "Оценка: ")
+        Text(text = stringResource(R.string.rating_game_text))
         OutlinedTextField(
             value = ratingGame,
             modifier = Modifier.weight(1f),
@@ -136,7 +139,7 @@ fun EnterFields(
             }
         )
 
-        Text(text = "Год: ")
+        Text(text = stringResource(R.string.year_game_text))
         OutlinedTextField(
             value = yearGame,
             modifier = Modifier.weight(1f),
@@ -145,7 +148,7 @@ fun EnterFields(
             }
         )
 
-        Text(text = "Жанр: ")
+        Text(text = stringResource(R.string.genre_game_text))
         OutlinedTextField(
             value = genreGame,
             readOnly = true,
@@ -164,53 +167,81 @@ fun ActionButtons(
     genreGame: String,
     isSortGames: Boolean,
     gameViewModel: GameViewModel,
-    onShowMessage: (String) -> Unit,
-    onSaveGames: () -> Unit,
-    onLoadGames: () -> Unit,
-    onIsSortGamesChange: () -> Unit,
+    onIsSortGamesChange: () -> Unit
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val onShowMessage: (String) -> Unit = { textMessage ->
+        scope.launch(Dispatchers.Main) {
+            Toast.makeText(context, textMessage, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    val saveGamesLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/plain"),
+        onResult = { uri ->
+            uri?.let {
+                val outputStream = context.contentResolver.openOutputStream(uri)
+                gameViewModel.saveGames(outputStream, onShowMessage)
+            }
+        }
+    )
+    val loadGamesLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument(),
+        onResult = { uri ->
+            uri?.let {
+                val inputStream = context.contentResolver.openInputStream(uri)
+                gameViewModel.loadGames(inputStream, onShowMessage)
+            }
+        }
+    )
+
     Row(verticalAlignment = Alignment.CenterVertically) {
         Button(modifier = Modifier.weight(1f), onClick = {
             if (nameGame.isEmpty() || ratingGame.isEmpty() || yearGame.isEmpty() || genreGame == "-")
-                onShowMessage.invoke("Для добавления игры необходимо указать название, оценку, год и жанр игры")
-            else if (ratingGame.toInt() < 1 || ratingGame.toInt() > 10)
-                onShowMessage.invoke("Оценка должна принимать значение в интервале от 1 до 10")
+                onShowMessage("Для добавления игры необходимо указать название, оценку, год и жанр игры")
+            else if (ratingGame.toInt() !in 1..10)
+                onShowMessage("Оценка должна принимать значение в интервале от 1 до 10")
             else gameViewModel.addGame(nameGame, ratingGame, yearGame, genreGame, onShowMessage)
         }) {
-            Text("Добавить")
+            Text(stringResource(R.string.add_button_text))
         }
 
         Button(modifier = Modifier.weight(1f), onClick = {
             if (nameGame.isEmpty() || yearGame.isEmpty())
-                onShowMessage.invoke("Для обновления данных по игре необходимо указать название и год игры")
-            else if (ratingGame.isNotEmpty() && (ratingGame.toInt() < 1 || ratingGame.toInt() > 10))
-                onShowMessage.invoke("Оценка должна принимать значение в интервале от 1 до 10")
+                onShowMessage("Для обновления данных по игре необходимо указать название и год игры")
+            else if (ratingGame.isNotEmpty() && (ratingGame.toInt() !in 1..10))
+                onShowMessage("Оценка должна принимать значение в интервале от 1 до 10")
             else gameViewModel.changeGame(nameGame, ratingGame, yearGame, genreGame, onShowMessage)
         }) {
-            Text("Изменить")
+            Text(stringResource(R.string.change_button_text))
         }
 
         Button(modifier = Modifier.weight(1f), onClick = {
             if (nameGame.isEmpty() || yearGame.isEmpty())
-                onShowMessage.invoke("Для удаления игры необходимо указать название и год игры")
+                onShowMessage("Для удаления игры необходимо указать название и год игры")
             else gameViewModel.deleteGame(nameGame, yearGame, onShowMessage)
         }) {
-            Text("Удалить")
+            Text(stringResource(R.string.delete_button_text))
         }
     }
 
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Button(modifier = Modifier.weight(1f), onClick = onSaveGames) {
-            Text("Сохранить")
+        Button(modifier = Modifier.weight(1f), onClick = {
+            saveGamesLauncher.launch("games.txt")
+        }) {
+            Text(stringResource(R.string.save_button_text))
         }
 
-        Button(modifier = Modifier.weight(1f), onClick = onLoadGames) {
-            Text("Загрузить")
+        Button(modifier = Modifier.weight(1f), onClick = {
+            loadGamesLauncher.launch(arrayOf("text/plain"))
+        }) {
+            Text(stringResource(R.string.load_button_text))
         }
     }
 
     Row(verticalAlignment = Alignment.CenterVertically) {
         Checkbox(checked = isSortGames, onCheckedChange = { onIsSortGamesChange.invoke() })
-        Text("Сортировать")
+        Text(stringResource(R.string.sort_checkbox_text))
     }
 }

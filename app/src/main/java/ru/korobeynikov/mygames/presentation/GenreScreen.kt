@@ -9,11 +9,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.unit.dp
+import ru.korobeynikov.mygames.R
+import ru.korobeynikov.mygames.presentation.game.GameViewModel
 
 @Composable
 fun GenreScreen(gameViewModel: GameViewModel, onNavigateToGame: (GameViewModel) -> Unit) {
-    val genresList = gameViewModel.getGenres()
+    val genresList = stringArrayResource(R.array.game_genres)
     LazyColumn {
         items(genresList.count()) { index ->
             GenreItem(gameViewModel, genresList[index], onNavigateToGame)
@@ -25,7 +28,7 @@ fun GenreScreen(gameViewModel: GameViewModel, onNavigateToGame: (GameViewModel) 
 fun GenreItem(
     gameViewModel: GameViewModel,
     genre: String,
-    onNavigateToGame: (GameViewModel) -> Unit,
+    onNavigateToGame: (GameViewModel) -> Unit
 ) {
     Text(
         text = genre,
@@ -36,6 +39,6 @@ fun GenreItem(
             .clickable(onClick = {
                 gameViewModel.actionChangeGenre(genre)
                 onNavigateToGame.invoke(gameViewModel)
-            }),
+            })
     )
 }

@@ -1,3 +1,37 @@
 <resources>
     <string name="app_name">MyGames</string>
+
+    <string name="name_game_text">Название: </string>
+    <string name="rating_game_text">Оценка: </string>
+    <string name="year_game_text">Год: </string>
+    <string name="genre_game_text">Жанр: </string>
+
+    <string name="add_button_text">Добавить</string>
+    <string name="change_button_text">Изменить</string>
+    <string name="delete_button_text">Удалить</string>
+    <string name="save_button_text">Сохранить</string>
+    <string name="load_button_text">Загрузить</string>
+    <string name="sort_checkbox_text">Сортировать</string>
+
+    <string-array name="game_genres">
+        <item>FPS</item>
+        <item>TPS</item>
+        <item>Survival horror</item>
+        <item>Hack and slash</item>
+        <item>Stealth</item>
+        <item>RTS</item>
+        <item>TBT</item>
+        <item>RTT</item>
+        <item>ARPG</item>
+        <item>CRPG</item>
+        <item>JRPG</item>
+        <item>Platformer</item>
+        <item>Fighting</item>
+        <item>Beat em up</item>
+        <item>Adventure</item>
+        <item>Interactive film</item>
+        <item>Puzzle</item>
+        <item>DCCG</item>
+        <item>Other</item>
+    </string-array>
 </resources>

@@ -1,4 +1,4 @@
-package ru.korobeynikov.mygames.presentation
+package ru.korobeynikov.mygames.presentation.game
 
 import ru.korobeynikov.mygames.data.Game
 
@@ -8,5 +8,5 @@ data class GameScreenState(
     val yearGame: String,
     val genreGame: String,
     val isSortGames: Boolean,
-    val listGames: List<Game>,
+    val listGames: List<Game>
 )
